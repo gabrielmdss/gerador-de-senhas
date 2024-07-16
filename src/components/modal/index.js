@@ -20,16 +20,16 @@ export default function ModalPassword({password, handleClose}) {
     <View style={styles.content}>
         <Text style={styles.title}>Senha gerada</Text>
 
-        <Pressable style={styles.innerPassword} onLongPress={handleCopyPassword}>
+        <Pressable style={styles.innerPassword} onLongPress={  async ()=> await handleCopyPassword()}>
             <Text style={styles.text}>{password}</Text>
         </Pressable>
 
         <View style={styles.buttonArea}>
-            <TouchableOpacity style={styles.button} onPress={handleClose}>
+            <TouchableOpacity style={styles.button} onPress={ async () => await handleClose()}>
                 <Text style={styles.buttonText}>Voltar</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.button, styles.buttonSave]} onPress={handleCopyPassword}>
+            <TouchableOpacity style={[styles.button, styles.buttonSave]} onPress={async () => await handleCopyPassword()}>
                 <Text style={styles.buttonSaveText}>Salvar senha</Text>
             </TouchableOpacity>
         </View>

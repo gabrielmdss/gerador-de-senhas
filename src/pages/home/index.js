@@ -34,8 +34,8 @@ export function Home() {
       
       <View  style={styles.area}> 
         <Slider style={{ height: 50}}
-        minimumValue={6}
-        maximumValue={20}
+        minimumValue={4}
+        maximumValue={9}
         maximumTrackTintColor='#ff0000'
         minimumTrackTintColor='#000'
         thumbTintColor='#392de9'
