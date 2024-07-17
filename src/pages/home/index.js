@@ -1,56 +1,81 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Modal } from 'react-native';
-import Slider from '@react-native-community/slider'
-import ModalPassword from '../../components/modal';
+// web 891787087901-fvqh5s9igmbb919tppcp5mhjks08irl6.apps.googleusercontent.com
+//ios 891787087901-6i6hno0ct164hdbqlbf5eos0h988t7ob.apps.googleusercontent.com
 
-let charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+//android 891787087901-47l66loufur19580vbfavc9i7qc2rd5b.apps.googleusercontent.com
+import * as React from 'react'
+import { StatusBar } from "expo-status-bar";
+import { StyleSheet, Text, View, Button } from "react-native-web";
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
+
+WebBrowser.maybeCompleteAuthSession();
 
 export function Home() {
+  const [ userInfo, setUserInfo] = React.useState(null);
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: '891787087901-47l66loufur19580vbfavc9i7qc2rd5b.apps.googleusercontent.com',
+    webClientId: '891787087901-fvqh5s9igmbb919tppcp5mhjks08irl6.apps.googleusercontent.com',
+    iosClientId: '891787087901-6i6hno0ct164hdbqlbf5eos0h988t7ob.apps.googleusercontent.com'
+  });
 
-  const [size, setSize] = useState(10)
-  const [passwordValue, setPasswordValue] = useState("")
-  const [modalVisible, setModalVisible] = useState(false)
+  React.useEffect(()=>{
+    handleSingInWithGoogle();
+  }, [response]);
 
-
-  function generatePassword (){
-    let password = ''
-
-    for (let i = 0, n = charset.length; i < size; i++){
-      password += charset.charAt(Math.floor(Math.random() * n))
+  async function handleSingInWithGoogle() {
+    console.log("handleSingInWithGoogle called");
+    const user = await AsyncStorage.getItem('@user');
+    console.log("Stored user:", user);
+  
+    if (!user) {
+      console.log("No user stored");
+      if (response?.type === 'success') {
+        console.log("Response success:", response);
+        await getUserInfo(response.authentication.accessToken);
+      } else {
+        console.log("No success response");
+        await getUserInfo();
+      }
+    } else {
+      console.log("User found in AsyncStorage");
+      setUserInfo(JSON.parse(user));
     }
-
-    setPasswordValue(password)
-    setModalVisible(true)
   }
+  
+  const getUserInfo = async (token) => {
+    console.log("getUserInfo called with token:", token);
+    if (!token) {
+      console.log("No token provided");
+      return;
+    }
+  
+    try {
+      const response = await fetch (
+        "https://www.googleapis.com/userinfo/v2/me",
+        {
+          headers: {Authorization: `Bearer ${token}`},
+        }
+      );
+  
+      const user = await response.json();
+      console.log("User info from Google:", user);
+      await AsyncStorage.setItem("@user", JSON.stringify(user));
+      setUserInfo(user);
+    } catch (error) {
+      console.log("Error fetching user info:", error);
+    }
+  }
+  
 
  return (
+  
    <View style={styles.container}>
-      <Image
-      source={require('../../assets/logo.png')}
-      style={styles.logo}
-      />
-      <Text style={styles.title}> {size} Caracteres</Text>
-      
-      <View  style={styles.area}> 
-        <Slider style={{ height: 50}}
-        minimumValue={4}
-        maximumValue={9}
-        maximumTrackTintColor='#ff0000'
-        minimumTrackTintColor='#000'
-        thumbTintColor='#392de9'
-        value={size}
-        onValueChange={(value) => setSize(value.toFixed(0)) }/>
-      </View>
-
-      <TouchableOpacity style={styles.button} onPress={generatePassword}>
-        <Text style={styles.buttonText}>Gerar senha</Text>
-      </TouchableOpacity>
-
-      <Modal visible={modalVisible} animationType='fade' transparent={true}>
-        <ModalPassword password={passwordValue} handleClose={() => setModalVisible(false)}/>
-      </Modal>
-
+    <Text>Codes</Text>
+    <Button title='Login com Google' onPress={promptAsync}/>
+    <StatusBar style="auto"/>    
    </View>
   );
 };
@@ -62,33 +87,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
-  logo: {
-    marginBottom: 60,
-  },
-  area: {
-    marginTop: 14,
-    marginBottom: 14,
-    width: '80%',
-    backgroundColor: '#FFF',
-    borderRadius: 8,
-    padding: 6,
-  },
-  button: {
-    backgroundColor: '#392de9',
-    width: '80%',
-    height: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-    marginBottom: 18,
-  },
-  buttonText: {
-    color: '#FFF',
-    fontSize: 20, 
-  },
-  title: {
-    fontSize: 30,
-    fontWeight:'bold',
-  }
-
 })
